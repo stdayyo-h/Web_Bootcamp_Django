@@ -1,63 +1,43 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import BlogSerializer
-from .models import Blog
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-# Create your views here.
-
-
-# class BlogView(APIView):
-
-
-#     def get(self,request,*args,**kwargs):
-#         id=request.GET.get('id')
-#         if(id):
-#             blogs=Blog.objects.filter(id=id)
-#         else:
-#             blogs=Blog.objects.all()
-#         serialized=BlogSerializer(blogs,many=True)
-#         return Response({"status":"success","data":serialized.data},status=status.HTTP_200_OK)
-    
-    
-#     def post(self, request):
-#         serializer = BlogSerializer(data=request.data)  
-#         if serializer.is_valid():  
-#             serializer.save()  
-#             return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)  
-#         else:  
-#             return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)  
-    
-@csrf_exempt
-def blog_view(request):
-    # print(request.method)
-    if(request.method=='GET'):
-        id=request.GET.get('id')
-        if(id):
-            blogs=Blog.objects.filter(id=id)
-        else:
-            blogs=Blog.objects.all()
-        serialized=BlogSerializer(blogs,many=True)
-        return JsonResponse({"data":serialized.data},status=status.HTTP_200_OK)
-        
-    if(request.method=='POST'):
-        serializer = BlogSerializer(data=request.POST)  
-        if serializer.is_valid():  
-            serializer.save()  
-            return JsonResponse({"data":serializer.data},status=status.HTTP_200_OK)  
-        else:  
-            return JsonResponse({"data":serializer.data},status=status.HTTP_200_OK)
+from .models import Blog
 
 
 @csrf_exempt
-def blog_delete_view(request):
-    if(request.method=="GET"):
-        id=request.GET.get('id')
-        if(id):
-            blog=Blog.objects.get(id=id)
-            blog.delete()
-            return JsonResponse({"message":"succesfully Deleted"},status=status.HTTP_202_ACCEPTED)
-        else:
-            return JsonResponse({"message":"Invalid Id"},status=status.HTTP_404_NOT_FOUND)
+def blog_list(request):
+    if request.method == 'GET':
+        blogs = Blog.objects.all()
+        data = {'blogs': list(blogs.values())}
+        return JsonResponse(data)
+    elif request.method == 'POST':
+        title = request.POST.get('title')
+        body = request.POST.get('body')
+        blog = Blog(title=title, body=body)
+        blog.save()
+        data = {'message': 'Blog created successfully!'}
+        return JsonResponse(data)
+
+
+@csrf_exempt
+def blog_detail(request, pk):
+    try:
+        blog = Blog.objects.get(pk=pk)
+    except Blog.DoesNotExist:
+        data = {'error': 'Blog does not exist'}
+        return JsonResponse(data, status=404)
+
+    if request.method == 'GET':
+        data = {'blog': {'title': blog.title, 'body': blog.body}}
+        return JsonResponse(data)
+    elif request.method == 'PUT':
+        title = request.POST.get('title')
+        body = request.POST.get('body')
+        blog.title = title or blog.title
+        blog.body = body or blog.body
+        blog.save()
+        data = {'message': 'Blog updated successfully!'}
+        return JsonResponse(data)
+    elif request.method == 'DELETE':
+        blog.delete()
+        data = {'message': 'Blog deleted successfully!'}
+        return JsonResponse(data)
