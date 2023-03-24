@@ -61,3 +61,21 @@ def blog_delete_view(request):
             return JsonResponse({"message":"succesfully Deleted"},status=status.HTTP_202_ACCEPTED)
         else:
             return JsonResponse({"message":"Invalid Id"},status=status.HTTP_404_NOT_FOUND)
+
+
+@csrf_exempt
+def blog_edit_view(request):
+    if(request.method=='POST'):
+        id=request.POST.get('id')
+        title=request.POST.get('title')
+        body=request.POST.get('body')
+        blog=Blog.objects.get(id=id)
+        if(blog):
+            if(title):
+                blog.title=title
+            if(body):
+                blog.body=body
+            blog.save()
+            return JsonResponse({"message":"succesfully Edited"},status=status.HTTP_202_ACCEPTED)
+        else:
+            return JsonResponse({"message":"Invalid Id"},status=status.HTTP_404_NOT_FOUND)
