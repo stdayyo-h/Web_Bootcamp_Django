@@ -6,6 +6,7 @@ from .serializers import BlogSerializer
 from .models import Blog
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import json
 # Create your views here.
 
 
@@ -43,7 +44,7 @@ def blog_view(request):
         return JsonResponse({"data":serialized.data},status=status.HTTP_200_OK)
         
     if(request.method=='POST'):
-        serializer = BlogSerializer(data=request.POST)  
+        serializer = BlogSerializer(data=json.loads(request.body))  
         if serializer.is_valid():  
             serializer.save()  
             return JsonResponse({"data":serializer.data},status=status.HTTP_200_OK)  
@@ -66,16 +67,17 @@ def blog_delete_view(request):
 @csrf_exempt
 def blog_edit_view(request):
     if(request.method=='POST'):
-        id=request.POST.get('id')
-        title=request.POST.get('title')
-        body=request.POST.get('body')
-        blog=Blog.objects.filter(id=id)
+        requestbody=json.loads(request.body)
+        if('id' in requestbody):
+            blog=Blog.objects.filter(id=requestbody['id'])
+        else:
+            blog=NULL        
         if(blog):
             blog=blog[0]
-            if(title):
-                blog.title=title
-            if(body):
-                blog.body=body
+            if('title' in requestbody):
+                blog.title=requestbody['title']
+            if('body' in requestbody):
+                blog.body=requestbody['body']
             blog.save()
             return JsonResponse({"message":"succesfully Edited"},status=status.HTTP_202_ACCEPTED)
         else:
