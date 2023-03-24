@@ -44,12 +44,16 @@ def blog_view(request):
         return JsonResponse({"data":serialized.data},status=status.HTTP_200_OK)
         
     if(request.method=='POST'):
-        serializer = BlogSerializer(data=json.loads(request.body))  
-        if serializer.is_valid():  
+        data = json.loads(request.body)
+        if not data.get('author_name'):
+            return JsonResponse({"error": "Author name cannot be empty."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        serializer = BlogSerializer(data=data)
+        if serializer.is_valid():
             serializer.save()  
-            return JsonResponse({"data":serializer.data},status=status.HTTP_200_OK)  
-        else:  
-            return JsonResponse({"data":serializer.data},status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"data": serializer.data}, status=status.HTTP_200_OK)  
+        else:
+            return JsonResponse({"data": serializer.data}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @csrf_exempt
@@ -78,6 +82,8 @@ def blog_edit_view(request):
                 blog.title=requestbody['title']
             if('body' in requestbody):
                 blog.body=requestbody['body']
+            if('author_name' in requestbody):
+                blog.body=requestbody['author_name']
             blog.save()
             return JsonResponse({"message":"succesfully Edited"},status=status.HTTP_202_ACCEPTED)
         else:
