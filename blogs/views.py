@@ -48,7 +48,7 @@ def blog_view(request):
             serializer.save()  
             return JsonResponse({"data":serializer.data},status=status.HTTP_200_OK)  
         else:  
-            return JsonResponse({"data":serializer.data},status=status.HTTP_200_OK)
+            return JsonResponse({"data":serializer.data},status=status.HTTP_400_BAD_REQUEST)
 
 
 @csrf_exempt
@@ -69,8 +69,9 @@ def blog_edit_view(request):
         id=request.POST.get('id')
         title=request.POST.get('title')
         body=request.POST.get('body')
-        blog=Blog.objects.get(id=id)
+        blog=Blog.objects.filter(id=id)
         if(blog):
+            blog=blog[0]
             if(title):
                 blog.title=title
             if(body):
