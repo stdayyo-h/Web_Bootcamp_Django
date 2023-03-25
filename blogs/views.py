@@ -32,27 +32,26 @@ def blog_view(request):
             return JsonResponse({"data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     
-
 @csrf_exempt
-def blog_delete_view(request):
+def blog_delete_view(request,id):
     if request.method == 'DELETE':
-        id = request.GET.get('id')
-        if id:
-            blog = Blog.objects.filter(id=id).first()
-            if not blog:
-                return JsonResponse({"message": "Invalid ID"}, status=status.HTTP_404_NOT_FOUND)
-            blog.delete()
-            return JsonResponse({"message": "Successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
-        else:
+        if not id:
             return JsonResponse({"message": "ID is required."}, status=status.HTTP_400_BAD_REQUEST)
-
+        blog = Blog.objects.filter(id=id).first()
+        if not blog:
+            return JsonResponse({"message": "Invalid ID"}, status=status.HTTP_404_NOT_FOUND)
+        blog.delete()
+        return JsonResponse({"message": "Successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
+    else:
+        return JsonResponse({"message": "Invalid request method."}, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
 def blog_edit_view(request):
     if request.method == 'PUT':
         request_body = json.loads(request.body)
         id = request_body.get('id')
-        blog = Blog.objects.filter(id=id).first()
+        print(id)
+        blog = Blog.objects.get(id=id)
         if not blog:
             return JsonResponse({"message": "Invalid ID"}, status=status.HTTP_404_NOT_FOUND)
         serializer = BlogSerializer(blog, data=request_body)
