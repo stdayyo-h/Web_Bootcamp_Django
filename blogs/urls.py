@@ -1,7 +1,7 @@
-from django.urls import path,include
-from .views import blog_view,blog_delete_view
+from django.urls import path
+from .views import BlogListAPIView, BlogDetailAPIView
 
-urlpatterns=[
-    path('all/',blog_view),
-    path('delete/',blog_delete_view)
+urlpatterns = [
+    path('blogs/', BlogListAPIView.as_view(), name='blog-list'),
+    path('blogs/<int:id>/', BlogDetailAPIView.as_view(), name='blog-detail'),
 ]
