@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Blog
+from .models import Blog,Author
 from .serializers import BlogSerializer
 
 
@@ -48,3 +48,20 @@ class BlogDetailAPIView(APIView):
 
         blog.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class BlogFilterView(APIView):
+    def get(self, request, author_name):
+        try:
+            author = Author.objects.get(name=author_name)
+        except Author.DoesNotExist:
+            return Response({'error': 'Author not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        blogs = Blog.objects.filter(author=author)
+        serializer = BlogSerializer(blogs, many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+class BlogSortView(APIView):
+    def get(self, request):
+        blogs = Blog.objects.order_by('-created_at')
+        serializer = BlogSerializer(blogs, many=True)
+        return Response(serializer.data)
